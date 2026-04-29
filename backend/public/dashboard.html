@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYKS Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0D47A1;
+            --white: #ffffff;
+            --bg: #f4f7f6;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        h2 { margin-top: 0; color: var(--primary); }
+        .btn-attendance {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #0D47A1, #1976D2);
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 10px 20px rgba(13, 71, 161, 0.2);
+            transition: transform 0.2s;
+        }
+        .btn-attendance:hover { transform: translateY(-3px); }
+        .logout { color: #d32f2f; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NYKS Dashboard</h1>
+            <span class="logout" onclick="location.href='/'">Logout</span>
+        </div>
+
+        <div class="card">
+            <h2>Welcome, <span id="username-display">Officer</span>!</h2>
+            <p><strong>Role:</strong> <span id="role-display">Field Officer</span></p>
+            <p><strong>Status:</strong> Active</p>
+        </div>
+
+        <div class="card" style="padding: 0; border: none; background: transparent; box-shadow: none; display: flex; gap: 10px;">
+            <a href="/attendance.html" class="btn-attendance" style="flex: 1;">
+                📸 Mark Attendance
+            </a>
+            <a href="/logs.html" class="btn-attendance" style="background: #546E7A; flex: 1;">
+                📄 View Logs
+            </a>
+        </div>
+        <div id="admin-section" style="display: none; margin-top: 10px;">
+            <a href="/admin.html" class="btn-attendance" style="background: #E65100;">
+                🛡️ Manage Officers
+            </a>
+        </div>
+        <p style="text-align: center; color: #666; font-size: 14px; margin-top: 15px;">
+            Live Selfie Capture Required
+        </p>
+    </div>
+
+    <script>
+        // Load user info from localStorage (saved during login)
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user) {
+            document.getElementById('username-display').innerText = user.username;
+            document.getElementById('role-display').innerText = user.role.replace('_', ' ').toUpperCase();
+            
+            // Show admin section if role is admin
+            if (user.role === 'admin') {
+                document.getElementById('admin-section').style.display = 'block';
+            }
+        } else {
+            location.href = '/'; // Redirect back if not logged in
+        }
+    </script>
+</body>
+</html>

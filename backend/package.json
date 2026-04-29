@@ -1,0 +1,25 @@
+{
+  "name": "nyks-auth-backend",
+  "version": "1.0.0",
+  "description": "Secure Auth Backend for NYKS Attendance System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "bcryptjs": "^2.4.3",
+    "canvas": "^3.2.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYKS Admin - Daily Mapping</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0D47A1; --bg: #f4f7f6; --danger: #c62828; --success: #2e7d32; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f8f9fa; color: var(--primary); }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .btn-add { background: var(--primary); color: white; }
+        .btn-schedule { background: #E65100; color: white; padding: 5px 10px; font-size: 11px; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 600px; max-height: 90vh; overflow-y: auto; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; }
+        .form-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        
+        .schedule-chip { background: #e3f2fd; color: #1976d2; padding: 5px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .schedule-chip button { background: none; border: none; color: #d32f2f; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ NYKS Daily Scheduler</h1>
+            <div>
+                <button class="btn btn-add" style="background:#00796B" onclick="showLocationModal()">🏢 Locations</button>
+                <button class="btn btn-add" style="background:#E65100" onclick="showBulkScheduleModal()">📅 Bulk Assign</button>
+                <button class="btn btn-add" onclick="showUserModal()">+ Add Officer</button>
+                <button class="btn" style="background:#ccc" onclick="location.href='/dashboard.html'">Exit</button>
+            </div>
+        </div>
+
+        <!-- AI Similarity Setting -->
+        <div class="card" style="display: flex; align-items: center; justify-content: space-between; background: #E3F2FD; border: 1px solid #90CAF9;">
+            <div>
+                <h3 style="margin:0; color: var(--primary);">📸 Global AI Similarity Score</h3>
+                <p style="margin:5px 0 0 0; font-size:12px; color:#546E7A;">Set the minimum match percentage required for all officers.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div id="current-threshold" style="font-size: 24px; font-weight: 700; color: var(--primary); min-width: 60px;">80%</div>
+                <input type="range" id="threshold-slider" min="50" max="95" step="5" value="80" style="width: 200px;">
+                <button class="btn btn-add" onclick="updateThreshold()">Save Limit</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Officer List & Today's Assignment</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleAllUsers(this)"></th>
+                        <th>Officer</th>
+                        <th>Emp ID</th>
+                        <th>Standard Zone</th>
+                        <th>Daily Assignments</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Daily Schedule Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <h3>Map Daily Location for <span id="sched-username"></span></h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Assign a specific duty location for a specific date.</p>
+            
+            <form id="scheduleForm">
+                <input type="hidden" id="sched-user-id">
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="sched-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Predefined Location (Optional)</label>
+                    <select id="sched-predefined-loc" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px;" onchange="fillPredefinedLoc(this.value)">
+                        <option value="">-- Custom Manual Mapping --</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Duty Latitude</label>
+                        <input type="number" step="any" id="sched-lat" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Duty Longitude</label>
+                        <input type="number" step="any" id="sched-lng" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>From Time</label>
+                        <input type="time" id="sched-from" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label>To Time</label>
+                        <input type="time" id="sched-to" value="17:00">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-add" style="width:100%; margin-top: 10px;">Save Daily Mapping</button>
+                <button type="button" class="btn" style="width:100%; background:#eee; margin-top: 5px;" onclick="closeSchedule()">Cancel</button>
+            </form>
+
+            <div id="existing-schedules" style="margin-top: 30px;">
+                <h4>Existing Assignments</h4>
+                <div id="schedule-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Mappings Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 id="view-title" style="color:#0D47A1; border-bottom:2px solid #eee; padding-bottom:10px;">Assignments</h3>
+            <div id="mapping-list-details" style="max-height: 400px; overflow-y: auto; margin: 15px 0;">
+                <!-- Mappings will be listed here -->
+            </div>
+            <button class="btn" style="width:100%; background:#546E7A; color:white; padding:12px; border-radius:8px; border:none; cursor:pointer; font-weight:600;" onclick="closeView()">Close Window</button>
+        </div>
+    </div>
+
+    <!-- User Modal (Standard) -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Officer</h3>
+            <form id="userForm">
+                <div class="form-group"><label>Officer Name</label><input type="text" id="username" required placeholder="e.g. John Doe"></div>
+                <div class="form-group"><label>Email Address</label><input type="email" id="email" required placeholder="john@example.com"></div>
+                <div class="form-group"><label>Login Password</label><input type="password" id="password" required placeholder="Min 6 characters"></div>
+                <div class="form-group">
+                    <label>Reference Photo (for Face Match)</label>
+                    <input type="file" id="profilePic" accept="image/*" required style="padding: 10px; border: 1px dashed #0D47A1; width: 100%; box-sizing: border-box; border-radius: 8px;">
+                    <p style="font-size: 11px; color: #666; margin-top: 5px;">Upload a clear front-facing photo of the officer.</p>
+                </div>
+                <button type="submit" class="btn btn-add" style="width:100%; background: #0D47A1; color: white; padding: 15px; border-radius: 12px; margin-top: 10px;">Save Officer & Register Face</button>
+                <button type="button" class="btn" style="width:100%; margin-top:5px; background:#f5f5f5; border:1px solid #ddd;" onclick="hideUserModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Locations Modal -->
+    <div id="locationModal" class="modal">
+        <div class="modal-content">
+            <h3>🏢 Predefined Locations</h3>
+            <div id="location-list" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;"></div>
+            <h4>Add New Location</h4>
+            <form id="locationForm">
+                <div class="form-group"><label>Location Name</label><input type="text" id="loc-name" required placeholder="e.g. Dharmapuri Office"></div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Latitude</label><input type="number" step="any" id="loc-lat" required></div>
+                    <div class="form-group"><label>Longitude</label><input type="number" step="any" id="loc-lng" required></div>
+                </div>
+                <div class="form-group"><label>Radius (meters)</label><input type="number" id="loc-radius" value="100" required></div>
+                <button type="submit" class="btn btn-add" style="width:100%; margin-top: 10px; background:#00796B">Save Location</button>
+                <button type="button" class="btn" style="width:100%; background:#eee; margin-top: 5px;" onclick="hideLocationModal()">Close</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Schedule Modal -->
+    <div id="bulkScheduleModal" class="modal">
+        <div class="modal-content">
+            <h3>📅 Bulk Assign Daily Location</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Assign a specific duty location for multiple officers at once.</p>
+            <form id="bulkScheduleForm">
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="bulk-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Predefined Location</label>
+                    <select id="bulk-location" required style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>From Time</label><input type="time" id="bulk-from" value="09:00"></div>
+                    <div class="form-group"><label>To Time</label><input type="time" id="bulk-to" value="17:00"></div>
+                </div>
+                <button type="submit" class="btn btn-add" style="width:100%; margin-top: 10px; background:#E65100">Apply Bulk Assignment</button>
+                <button type="button" class="btn" style="width:100%; background:#eee; margin-top: 5px;" onclick="hideBulkScheduleModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        let predefinedLocations = [];
+
+        async function fetchUsers() {
+            const res = await fetch('/api/admin/users');
+            const users = await res.json();
+            const list = document.getElementById('user-list');
+            list.innerHTML = users.map(u => `
+                <tr>
+                    <td><input type="checkbox" class="user-checkbox" value="${u.id}"></td>
+                    <td><b>${u.username}</b></td>
+                    <td><span style="background:#e3f2fd; color:#0D47A1; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">FIELD OFFICER</span></td>
+                    <td>${u.geofence?.lat || 'N/A'}, ${u.geofence?.lng || 'N/A'}</td>
+                    <td>
+                        <button class="btn" style="background:#f5f5f5; border:1px solid #ddd; color:#333; padding:5px 10px; font-size:12px;" 
+                                onclick="viewMappings('${u.id}', '${u.username}')">
+                            🔍 View (${u.dailySchedules ? Object.keys(u.dailySchedules).length : 0}) Mappings
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-schedule" onclick="openSchedule('${u.id}', '${u.username}')">📅 Map Daily</button>
+                        <button class="btn" style="padding:5px 10px; font-size:11px" onclick="deleteUser('${u.id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function viewMappings(id, name) {
+            document.getElementById('view-title').innerText = `Assignments for ${name}`;
+            document.getElementById('viewModal').style.display = 'flex';
+            renderMappingsList(id);
+        }
+
+        async function renderMappingsList(id) {
+            const res = await fetch('/api/admin/users');
+            const users = await res.json();
+            const u = users.find(user => String(user.id) === String(id));
+            const container = document.getElementById('mapping-list-details');
+            container.innerHTML = '';
+
+            if (u && u.dailySchedules && Object.keys(u.dailySchedules).length > 0) {
+                Object.keys(u.dailySchedules).sort().forEach(date => {
+                    const s = u.dailySchedules[date];
+                    const item = document.createElement('div');
+                    item.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;";
+                    item.innerHTML = `
+                        <div style="flex:1">
+                            <div style="font-weight:600; color:#0D47A1;">${date}</div>
+                            <div style="font-size:12px; color:#666;">Loc: ${s.geofence.lat}, ${s.geofence.lng} | ${s.schedule.from}-${s.schedule.to}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn" style="padding:4px 8px; font-size:11px; background:#0D47A1; color:white; border:none; border-radius:4px; cursor:pointer;" 
+                                    onclick="editMapping('${id}', '${date}', '${s.geofence.lat}', '${s.geofence.lng}', '${s.schedule.from}', '${s.schedule.to}')">Edit</button>
+                            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px; background:#ff5252; color:white; border:none; border-radius:4px; cursor:pointer;" onclick="deleteMapping('${id}', '${date}')">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">No daily assignments found.</p>';
+            }
+        }
+
+        function editMapping(id, date, lat, lng, from, to) {
+            closeView(); // Close the list modal
+            openSchedule(id, "Editing Mapping", { date, lat, lng, from, to });
+        }
+
+        async function deleteMapping(id, date) {
+            if (!confirm(`Delete mapping for ${date}?`)) return;
+            const res = await fetch(`/api/admin/users/${id}/mappings/${date}`, { method: 'DELETE' });
+            if (res.ok) {
+                renderMappingsList(id);
+                fetchUsers();
+            } else {
+                alert("Failed to delete mapping");
+            }
+        }
+
+        function closeView() { document.getElementById('viewModal').style.display = 'none'; }
+
+        let currentUserId = '';
+        function openSchedule(id, name, prefill = null) {
+            currentUserId = id;
+            document.getElementById('sched-username').innerText = name;
+            document.getElementById('sched-user-id').value = id;
+            
+            if (prefill) {
+                document.getElementById('sched-date').value = prefill.date;
+                document.getElementById('sched-lat').value = prefill.lat;
+                document.getElementById('sched-lng').value = prefill.lng;
+                document.getElementById('sched-from').value = prefill.from;
+                document.getElementById('sched-to').value = prefill.to;
+                document.getElementById('sched-predefined-loc').value = "";
+            } else {
+                // Default pre-fill for new mapping
+                const now = new Date();
+                const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                document.getElementById('sched-date').value = today;
+                document.getElementById('sched-lat').value = '11.6809';
+                document.getElementById('sched-lng').value = '78.1777';
+                document.getElementById('sched-from').value = '09:00';
+                document.getElementById('sched-to').value = '18:00';
+                document.getElementById('sched-predefined-loc').value = "";
+            }
+            
+            document.getElementById('scheduleModal').style.display = 'flex';
+        }
+
+        function fillPredefinedLoc(locId) {
+            if (!locId) return;
+            const loc = predefinedLocations.find(l => l.id === locId);
+            if (loc) {
+                document.getElementById('sched-lat').value = loc.lat;
+                document.getElementById('sched-lng').value = loc.lng;
+            }
+        }
+
+        function closeSchedule() { document.getElementById('scheduleModal').style.display = 'none'; }
+
+        document.getElementById('scheduleForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const date = document.getElementById('sched-date').value;
+            const data = {
+                dailySchedules: {
+                    [date]: {
+                        geofence: {
+                            lat: parseFloat(document.getElementById('sched-lat').value),
+                            lng: parseFloat(document.getElementById('sched-lng').value),
+                            radius: 100
+                        },
+                        schedule: {
+                            from: document.getElementById('sched-from').value,
+                            to: document.getElementById('sched-to').value
+                        }
+                    }
+                }
+            };
+
+            await fetch(`/api/admin/users/${currentUserId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            closeSchedule();
+            fetchUsers();
+        };
+
+        async function deleteUser(id) {
+            if (confirm('Delete user?')) {
+                await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                fetchUsers();
+            }
+        }
+
+        function showUserModal() { document.getElementById('userModal').style.display = 'flex'; }
+        function hideUserModal() { document.getElementById('userModal').style.display = 'none'; }
+        
+        // --- Locations Logic ---
+        async function fetchLocations() {
+            const res = await fetch('/api/admin/locations');
+            predefinedLocations = await res.json();
+            
+            // Update Location Modal List
+            const list = document.getElementById('location-list');
+            if(predefinedLocations.length === 0) {
+                list.innerHTML = '<p style="color:#666; font-size:13px;">No predefined locations found.</p>';
+            } else {
+                list.innerHTML = predefinedLocations.map(l => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px; margin-bottom:5px; border-radius:6px;">
+                        <div>
+                            <div style="font-weight:600; font-size:14px; color:#0D47A1;">${l.name}</div>
+                            <div style="font-size:11px; color:#666;">Lat: ${l.lat}, Lng: ${l.lng} | ${l.radius}m</div>
+                        </div>
+                        <button onclick="deleteLocation('${l.id}')" style="background:none; border:none; color:#d32f2f; cursor:pointer;">❌</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Update Dropdowns
+            const locOptions = '<option value="">-- Custom Manual Mapping --</option>' + 
+                               predefinedLocations.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+            document.getElementById('sched-predefined-loc').innerHTML = locOptions;
+            
+            const bulkOptions = '<option value="">-- Select Location --</option>' + 
+                               predefinedLocations.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+            document.getElementById('bulk-location').innerHTML = bulkOptions;
+        }
+
+        document.getElementById('locationForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('loc-name').value,
+                lat: document.getElementById('loc-lat').value,
+                lng: document.getElementById('loc-lng').value,
+                radius: document.getElementById('loc-radius').value
+            };
+            await fetch('/api/admin/locations', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+            document.getElementById('locationForm').reset();
+            fetchLocations();
+        };
+
+        async function deleteLocation(id) {
+            if(confirm('Delete this location?')) {
+                await fetch(`/api/admin/locations/${id}`, { method: 'DELETE' });
+                fetchLocations();
+            }
+        }
+
+        function showLocationModal() { fetchLocations(); document.getElementById('locationModal').style.display = 'flex'; }
+        function hideLocationModal() { document.getElementById('locationModal').style.display = 'none'; }
+
+        // --- Bulk Assign Logic ---
+        function toggleAllUsers(source) {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function showBulkScheduleModal() { 
+            const selected = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+            if(selected.length === 0) return alert('Please select at least one officer from the list first.');
+            
+            const now = new Date();
+            const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            document.getElementById('bulk-date').value = today;
+            document.getElementById('bulk-location').value = "";
+            document.getElementById('bulkScheduleModal').style.display = 'flex'; 
+        }
+        function hideBulkScheduleModal() { document.getElementById('bulkScheduleModal').style.display = 'none'; }
+
+        document.getElementById('bulkScheduleForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const selected = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+            if(selected.length === 0) return alert('No officers selected.');
+            
+            const data = {
+                userIds: selected,
+                date: document.getElementById('bulk-date').value,
+                locationId: document.getElementById('bulk-location').value,
+                from: document.getElementById('bulk-from').value,
+                to: document.getElementById('bulk-to').value
+            };
+            
+            await fetch('/api/admin/mappings/bulk', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+            alert('Bulk assignment applied successfully!');
+            hideBulkScheduleModal();
+            fetchUsers();
+            document.getElementById('selectAll').checked = false;
+        };
+
+        
+        // --- AI Threshold Logic ---
+        const slider = document.getElementById('threshold-slider');
+        const display = document.getElementById('current-threshold');
+        
+        slider.oninput = () => display.innerText = slider.value + '%';
+
+        async function fetchConfig() {
+            const res = await fetch('/api/admin/config');
+            const data = await res.json();
+            slider.value = data.threshold;
+            display.innerText = data.threshold + '%';
+        }
+
+        async function updateThreshold() {
+            const res = await fetch('/api/admin/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ threshold: parseInt(slider.value) })
+            });
+            if (res.ok) alert('✅ Global Similarity Score updated to ' + slider.value + '%');
+        }
+
+        document.getElementById('userForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const picFile = document.getElementById('profilePic').files[0];
+
+            if (!picFile) return alert("Please upload a reference photo for face verification.");
+
+            const reader = new FileReader();
+            reader.readAsDataURL(picFile);
+            reader.onload = async () => {
+                const profilePic = reader.result;
+                const res = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, profilePic, role: 'field_officer' })
+                });
+                if (res.ok) {
+                    alert("Officer registered successfully with face data!");
+                    hideUserModal();
+                    fetchUsers();
+                    document.getElementById('userForm').reset();
+                } else {
+                    const data = await res.json();
+                    alert("Error: " + data.message);
+                }
+            };
+        };
+
+        fetchUsers();
+        fetchConfig();
+        fetchLocations();
+    </script>
+</body>
+</html>

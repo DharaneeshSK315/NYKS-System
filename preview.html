@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYKS Attendance & Monitoring System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0D47A1;
+            --secondary: #1A237E;
+            --accent: #01579B;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary), var(--primary), var(--accent));
+            overflow: hidden;
+            color: var(--white);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        p.welcome {
+            font-size: 16px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .login-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .forgot-pass {
+            display: block;
+            text-align: right;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            margin-bottom: 25px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: white;
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .divider {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            opacity: 0.3;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: white;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 12px;
+        }
+
+        .btn-google {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-google:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="logo-icon">🛡️</span>
+            <h1>NYKS Nationwide Digital Attendance & Monitoring System</h1>
+            <p class="welcome">Hi, Welcome Back!</p>
+        </div>
+
+        <div class="login-card">
+            <div class="input-group">
+                <input type="text" placeholder="Username" id="username">
+            </div>
+            <div class="input-group">
+                <input type="password" placeholder="Password" id="password">
+            </div>
+            <a href="#" class="forgot-pass">Forgot Password?</a>
+            
+            <button class="btn-login">Login</button>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="btn-google">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" class="google-icon">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYKS Attendance Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0D47A1; --bg: #f4f7f6; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--primary); font-weight: 700; }
+        .selfie-preview { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; }
+        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Attendance Logs</h1>
+            <button onclick="location.href='/dashboard.html'" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ccc; cursor: pointer;">Back</button>
+        </div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>User</th>
+                        <th>Timestamp</th>
+                        <th>GPS Location</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-body">
+                    <!-- Logs will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/attendance/logs');
+                const logs = await response.json();
+                const body = document.getElementById('logs-body');
+                
+                body.innerHTML = logs.map(log => `
+                    <tr>
+                        <td><img src="/${log.selfie}" class="selfie-preview" alt="Selfie"></td>
+                        <td>${log.username || 'Field Officer'}</td>
+                        <td>${new Date(log.timestamp).toLocaleString()}</td>
+                        <td>
+                            <div style="font-size:11px; color:#666;">
+                                ${log.latitude ? `Lat: ${log.latitude.toFixed(4)}<br>Lng: ${log.longitude.toFixed(4)}` : 'No GPS Data'}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-pill" style="background: ${log.location_status === 'Inside' ? '#e8f5e9' : '#ffebee'}; color: ${log.location_status === 'Inside' ? '#2e7d32' : '#c62828'};">
+                                ${log.location_status || 'N/A'} (${log.attendance || 'Marked'})
+                            </span>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="5" style="text-align:center;">No records found yet.</td></tr>';
+            } catch (err) {
+                console.error('Error loading logs');
+            }
+        }
+        loadLogs();
+    </script>
+</body>
+</html>

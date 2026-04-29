@@ -1,0 +1,79 @@
+[
+  {
+    "id": "1",
+    "username": "Admin",
+    "password": "hashed_Admin123",
+    "role": "admin",
+    "email": "admin@nyks.gov.in",
+    "profilePic": "https://i.pravatar.cc/150?u=admin"
+  },
+  {
+    "id": "2",
+    "username": "Dharaneesh S K",
+    "password": "hashed_Mugilarasi",
+    "role": "field_officer",
+    "email": "dharask525@gmail.com",
+    "profilePic": "/dharaneesh.jpeg",
+    "geofence": {
+      "lat": 11.6809,
+      "lng": 78.1777,
+      "radius": 100
+    },
+    "schedule": {
+      "from": "00:00",
+      "to": "23:59"
+    },
+    "dailySchedules": {
+      "2026-04-26": {
+        "geofence": {
+          "lat": 11.6809,
+          "lng": 78.1777,
+          "radius": 100
+        },
+        "schedule": {
+          "from": "09:00",
+          "to": "23:44"
+        }
+      },
+      "2026-04-27": {
+        "geofence": {
+          "lat": 11.6809,
+          "lng": 78.1777,
+          "radius": 100
+        },
+        "schedule": {
+          "from": "09:00",
+          "to": "18:00"
+        }
+      },
+      "2026-04-29": {
+        "geofence": {
+          "lat": 11.681,
+          "lng": 78.1413,
+          "radius": 100
+        },
+        "schedule": {
+          "from": "00:00",
+          "to": "23:45"
+        }
+      }
+    }
+  },
+  {
+    "id": "3",
+    "username": "Premanand",
+    "password": "hashed_Prem12345",
+    "role": "field_officer",
+    "email": "premanand@example.com",
+    "profilePic": "/prem.jpeg",
+    "geofence": {
+      "lat": 11.6809,
+      "lng": 78.1777,
+      "radius": 100
+    },
+    "schedule": {
+      "from": "00:00",
+      "to": "23:59"
+    }
+  }
+]
