@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(
@@ -29,7 +30,7 @@ class NYKSApp extends StatelessWidget {
       home: Consumer<AuthService>(
         builder: (context, auth, _) {
           if (auth.token != null) {
-            return const HomeScreen();
+            return HomeScreen();
           }
           return const LoginScreen();
         },
