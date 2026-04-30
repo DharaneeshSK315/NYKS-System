@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService extends ChangeNotifier {
   // Use 10.0.2.2 for Android Emulator, or your local IP for physical devices
-  final String _baseUrl = 'http://10.0.2.2:5000/api/auth';
+  final String _baseUrl = 'https://nyks-system.onrender.com/api/auth';
   
   String? _token;
   Map<String, dynamic>? _user;

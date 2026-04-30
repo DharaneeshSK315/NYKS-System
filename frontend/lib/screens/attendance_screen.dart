@@ -58,7 +58,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       final token = context.read<AuthService>().token;
       var request = http.MultipartRequest(
         'POST', 
-        Uri.parse('http://10.0.2.2:5000/api/attendance/mark')
+        Uri.parse('https://nyks-system.onrender.com/api/face/compare')
       );
       
       request.headers['Authorization'] = 'Bearer $token';
